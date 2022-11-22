@@ -16,7 +16,7 @@ class OneLine extends Figure {
             points.push({x: xCenter + j, y: yCenter});
     
             i++;
-            j += 0.2;
+            j += 1;
         }
     
         return points;
@@ -69,7 +69,58 @@ class FourLines extends Figure {
 }
 
 
+class Circle extends Figure {
+    
+    getPoints() {
+        let yCenter = window.innerHeight / 2;
+        let xCenter = window.innerWidth / 2;
+        let x, y, angle = 0;
+        let r = 50;
+        let points = [];
+        while(angle < Math.PI *2) {
+    
+            x = r * Math.cos(angle);
+            y = r * Math.sin(angle);
 
+            y += yCenter;
+            x += xCenter + r;
+
+            angle += 0.1;
+
+            points.push({x: x, y: y})
+        }
+    
+        return points;
+    }
+}
+
+class Rose extends Figure {
+    
+    getPoints() {
+        let yCenter = window.innerHeight / 2;
+        let xCenter = window.innerWidth / 2;
+        let x, y, angle = 0;
+        let r = 0;
+        let points = [];
+        let p=1, q=1
+        while(angle < Math.PI *8) {
+    
+            r = Math.cos((p/q) * angle) * 50;
+
+            x = r * Math.cos(angle);
+            y = r * Math.sin(angle);
+
+            y += yCenter;
+            x += xCenter + r;
+
+            angle += 0.1;
+
+            points.push({x: x, y: y})
+        }
+    
+        return points;
+    }
+}
 
 var figurePoints = [];
 var points = [];
@@ -89,16 +140,15 @@ var colors = [
 ];
 
 var figures = [
-    new OneLine(),
-    new TwoLines(),
-    new FourLines()
+    new Rose(),
+   // new TwoLines(),
+   // new FourLines()
 ]
 
 function setup() {
-    figurePoints = figures.pop().getPoints();
 	createCanvas(window.innerWidth, window.innerHeight);
 	stroke(255);     
-    strokeWeight(1)
+    strokeWeight(2)
 	background(0);
 }
 
@@ -124,10 +174,16 @@ function changeColor(colorIndex) {
 function drawPoints() {
 
     let iColor = 0;
+    let prev = null;
     points.forEach(current => {
 
         iColor = changeColor(iColor);
-        circle(current.x, current.y, 1);
+        
+        if (prev) {
+            line(prev.x, prev.y, current.x, current.y)
+        }
+
+        prev = current;
     });
 }
 
@@ -136,10 +192,19 @@ function iterate() {
         return;
     }
 
-    if (iteration == figurePoints.length) {
+    if (iteration == 0 && figures.length) {
         figurePoints = figures.pop().getPoints();
-        iteration = 0;
-        points = [];
+    }
+
+    if (iteration == figurePoints.length) {
+
+        if (figures.length) {
+            figurePoints = figures.pop().getPoints();
+            iteration = 0;
+            points = [];
+        }
+        
+        return;
     }
 
     let figurePoint = figurePoints[iteration];
