@@ -30,14 +30,23 @@ class TwoLines extends Figure {
         let points = [];
         let i = 0;
         let j = 0;
+        let p1 = {x: xCenter, y:yCenter}
+        let p2 = {x: xCenter, y:yCenter}
     
-        while(i < 200) {
+        while(i < 2) {
     
-            points.push({x: xCenter + j, y: yCenter});
-            points.push({x: xCenter - j , y: yCenter});
+            j += 50;
+
+            points.push({x: p1.x, y: p1.y});
+            p1 = {x: p1.x + j, y: p1.y}
+            points.push(p1);
+
+            points.push({x: p2.x, y: p2.y});
+            p2 = {x: p2.x - j, y: p2.y}
+            points.push(p2);
     
             i++;
-            j += 0.2;
+
         }
     
         return points;
@@ -140,8 +149,8 @@ var colors = [
 ];
 
 var figures = [
-    new Rose(),
-   // new TwoLines(),
+   // new Rose(),
+    new TwoLines(),
    // new FourLines()
 ]
 
@@ -174,45 +183,48 @@ function changeColor(colorIndex) {
 function drawPoints() {
 
     let iColor = 0;
-    let prev = null;
-    points.forEach(current => {
+    
+    for (let i = 0; i < iteration; i++) {
 
-        iColor = changeColor(iColor);
-        
-        if (prev) {
-            line(prev.x, prev.y, current.x, current.y)
+        if (i == points.length - 1) {
+            return;
         }
 
-        prev = current;
-    });
+        let p1 = points[i];
+        let p2 = points[i + 1];
+
+        iColor = changeColor(iColor);
+        line(p1.x, p1.y, p2.x, p2.y);
+    }
+}
+
+function rotatePoints(points) {
+    var angle = 0;
+    points.forEach((p, i) => {
+        points[i] = rotatePoint(p, angle)
+        angle += incrementRotationAngle;
+    })
 }
 
 function iterate() {
-    if (!figures.length && !figurePoints.length) {
-        return;
-    }
-
     if (iteration == 0 && figures.length) {
-        figurePoints = figures.pop().getPoints();
+        points = figures.pop().getPoints();
+        rotatePoints(points);
     }
 
-    if (iteration == figurePoints.length) {
-
+    if (iteration == points.length) {
+       
         if (figures.length) {
-            figurePoints = figures.pop().getPoints();
-            iteration = 0;
             points = [];
-        }
+            points = figures.pop().getPoints();
+            rotatePoints(points);
+            iteration = 0;
+        } 
         
         return;
     }
 
-    let figurePoint = figurePoints[iteration];
-    let rotatedPoint = rotatePoint(figurePoint, rotationAngle);
-    points.push(rotatedPoint);
-
-    iteration = iteration + 1;
-    rotationAngle = rotationAngle + incrementRotationAngle;
+    iteration ++;
 }
 
 function rotatePoint(point, angle) {
