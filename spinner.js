@@ -1,82 +1,76 @@
 class Figure {
-    getPoints() { 
+    getLines() { 
         return [];
     }
 }
 
-class OneLine extends Figure {
-    getPoints() {
-        let points = [];
+class AngleLines extends Figure {
+    
+    constructor(angle) {
+        super();
+        this.angle = angle;
+    }
+
+    getLines() {
+
+        let currentAngle = 0
+        let increment = 1;
+        let lines = [];
         let yCenter = window.innerHeight / 2;
         let xCenter = window.innerWidth / 2;
-        let i = 0;
-        let j = 0; 
-    
-        while(i < 200) {       
-            points.push({x: xCenter + j, y: yCenter});
-    
-            i++;
-            j += 1;
+
+        while (currentAngle < 360) {
+            lines.push([{x: xCenter, y: yCenter}]);
+            currentAngle += this.angle;
         }
+
+        for (let j = 0; j < 200; j++) {
+
+            let i = 0;
+            currentAngle = 0;
+            while (currentAngle < 360) {
+
+                let radians = currentAngle * (Math.PI / 180);
+                let x = increment * Math.cos(radians);
+                let y = increment * Math.sin(radians);
     
-        return points;
+                let line = lines[i];
+                let lastPoint = line[line.length - 1];
+                let newPoint = {x: lastPoint.x + x, y: lastPoint.y + y}
+
+                line.push(newPoint); 
+    
+                currentAngle += this.angle;
+                i++;
+            }
+                
+        }
+
+        return lines;
+        
+    }
+}
+
+class OneLine extends Figure {
+    getLines() {
+        let angleLine = new AngleLines(360);
+        return angleLine.getLines();
     }
 }
 
 class TwoLines extends Figure {
-    getPoints() {
-        let yCenter = window.innerHeight / 2;
-        let xCenter = window.innerWidth / 2;
-        let points = [];
-        let i = 0;
-        let j = 0;
-        let p1 = {x: xCenter, y:yCenter}
-        let p2 = {x: xCenter, y:yCenter}
-    
-        while(i < 2) {
-    
-            j += 50;
-
-            points.push({x: p1.x, y: p1.y});
-            p1 = {x: p1.x + j, y: p1.y}
-            points.push(p1);
-
-            points.push({x: p2.x, y: p2.y});
-            p2 = {x: p2.x - j, y: p2.y}
-            points.push(p2);
-    
-            i++;
-
-        }
-    
-        return points;
+    getLines() {
+        let angleLine = new AngleLines(180);
+        return angleLine.getLines();
     }
 }
 
 class FourLines extends Figure {
-    getPoints() {
-        let yCenter = window.innerHeight / 2;
-        let xCenter = window.innerWidth / 2;
-        let points = [];
-        let i = 0;
-        let j = 0;
-    
-        while(i < 200) {
-       
-            points.push({x: xCenter + j, y: yCenter});
-            points.push({x: xCenter - j , y: yCenter});
-    
-            points.push({x: xCenter, y: yCenter + j});
-            points.push({x: xCenter , y: yCenter - j});
-    
-            i++;
-            j += 0.5;
-        }
-    
-        return points;
+    getLines() {
+        let angleLine = new AngleLines(90);
+        return angleLine.getLines();
     }
 }
-
 
 class Circle extends Figure {
     
@@ -131,11 +125,10 @@ class Rose extends Figure {
     }
 }
 
-var figurePoints = [];
-var points = [];
+var lines = [];
 var iteration = 0;
-var rotationAngle = 0;
-var incrementRotationAngle = 0.2;
+var currentFigure = null;
+var incrementRotationAngle = 0.3;
 var colors = [
     [204, 102, 255],
     [255, 102, 102],
@@ -149,8 +142,9 @@ var colors = [
 ];
 
 var figures = [
-   // new Rose(),
+    new OneLine(),
     new TwoLines(),
+    new FourLines()
    // new FourLines()
 ]
 
@@ -164,7 +158,7 @@ function setup() {
 function draw() {
     background(0);
     iterate();
-    drawPoints();
+    drawLines();
 }
 
 function changeColor(colorIndex) {
@@ -180,8 +174,11 @@ function changeColor(colorIndex) {
     return colorIndex;
 }
 
-function drawPoints() {
+function drawLines() {
+    lines.forEach(i => drawLine(i));
+}
 
+function drawLine(points) {
     let iColor = 0;
     
     for (let i = 0; i < iteration; i++) {
@@ -206,22 +203,35 @@ function rotatePoints(points) {
     })
 }
 
+function rotateLines(lines) {
+    lines.forEach(i => rotatePoints(i));
+}
+
+function isFirstIteration() {
+    return currentFigure == null && figures.length
+}
+
+function figureHasFinish() {
+    if (currentFigure == null) return false;
+
+    return lines[0].length == iteration;
+}
+
+function nextFigure() {
+    currentFigure = figures.shift();
+    lines = currentFigure.getLines();
+    rotateLines(lines)
+
+    iteration = 0;
+}
+
 function iterate() {
-    if (iteration == 0 && figures.length) {
-        points = figures.pop().getPoints();
-        rotatePoints(points);
+    if (isFirstIteration()) {
+        nextFigure()
     }
 
-    if (iteration == points.length) {
-       
-        if (figures.length) {
-            points = [];
-            points = figures.pop().getPoints();
-            rotatePoints(points);
-            iteration = 0;
-        } 
-        
-        return;
+    if (figureHasFinish() && figures.length) {
+        nextFigure()
     }
 
     iteration ++;
