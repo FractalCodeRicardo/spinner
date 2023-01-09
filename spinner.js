@@ -4,6 +4,73 @@ class Figure {
     }
 }
 
+class Nthgram extends Figure {
+    constructor(angle, radius) {
+        super();
+        this.angle = angle;
+        this.radius = radius;
+    }
+
+    getLines() {
+
+        let vertexes = [];
+        let currentAngle = 0;
+        let lines = [];
+        let yCenter = window.innerHeight / 2;
+        let xCenter = window.innerWidth / 2;
+        while (currentAngle < 360) {
+            let radians = currentAngle * (Math.PI / 180);
+            let x = this.radius * Math.cos(radians) + xCenter;
+            let y = this.radius * Math.sin(radians) + yCenter;
+
+            vertexes.push({x: x, y: y});
+            currentAngle += this.angle;
+        }
+
+        for (let i = 0; i < vertexes.length -1; i++) {
+            let p1= vertexes[i];
+            let p2= vertexes[i + 1];
+            let points = this.getPointsLine(p1, p2);
+
+            lines.push(points);
+        }
+
+
+        let finalPoints = this.getPointsLine(vertexes[vertexes.length -1], vertexes[0]);
+        lines.push(finalPoints);
+
+        return lines;
+    }
+
+    getDistance(p1, p2) {
+        return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+    }
+
+    getPointsLine(p1, p2) {
+        let a = p2.y - p1.y;
+        let b = p1.x - p2.x;
+        let c = a * p1.x + b * p1.y;
+        let points = [];
+        let x = p1.x;
+        let i = 0;
+        while ( i < 1000) {
+            let y = (c - (a*x)) / b;
+            let p = {x: x, y: y}
+            let direction = p2.x > p1.x ? 1 : -1;
+            x += 1 * direction;
+            if (this.getDistance(p, p2) < 1) {
+                break;
+            }
+
+            i++;
+            points.push(p);
+        }
+
+        return points;
+    }
+
+}
+
 class AngleLines extends Figure {
     
     constructor(angle) {
@@ -128,7 +195,7 @@ class Rose extends Figure {
 var lines = [];
 var iteration = 0;
 var currentFigure = null;
-var incrementRotationAngle = 0.3;
+var incrementRotationAngle = 0.5;
 var colors = [
     [204, 102, 255],
     [255, 102, 102],
@@ -142,9 +209,11 @@ var colors = [
 ];
 
 var figures = [
-    new OneLine(),
-    new TwoLines(),
-    new FourLines()
+    //new Nthgram(90, 100),
+    new Nthgram(90, 200)
+   // new OneLine(),
+   // new TwoLines(),
+   // new FourLines()
    // new FourLines()
 ]
 
